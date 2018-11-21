@@ -35,13 +35,17 @@ We load a range of libraries for general data wrangling and general visualisatio
 library('dplyr') # data manipulation
 library('readr') # input/output
 library('data.table') # data manipulation
+library('DataExplorer') # data wrangling
 library('tibble') # data wrangling
 library('tidyr') # data wrangling
+library('missForest') # impute missing values
+library('tidyverse') # data wrangling
 library('stringr') # string manipulation
 library('forcats') # factor manipulation
 library('lazyeval') # data wrangling
 library('broom') # data wrangling
 library('purrr') # string manipulation
+library('lubridate') # date wrangling
 
 # visualisation
 library('ggplot2') # visualisation
@@ -55,7 +59,7 @@ library('corrplot') # visualisation
 library('geosphere') # geospatial locations
 library('leaflet') # maps
 library('leaflet.extras') # maps
-library(maps) # maps
+library('maps') # maps
 ```
 
 
@@ -77,8 +81,72 @@ glimpse(airpol)
 
 We find that the data is very messy with numerous missing or undefined values. Certain dates have different structure. The data needs extensive cleaning before we commence the analysis of the same.
 
+# Missing Data
 
+First lets find how much data is missing.
+```{r}
+missing<-sum(is.na(airpol))/(ncol(airpol)*nrow(airpol))
+paste0(round(missing*100,digits = 2)," Percent")
+```
 
+# Which variable is most incomplete
 
+Now that we know how much of data is missing, lets zeroin on the variables.
+
+```{r}
+plot_missing(airpol)
+```
+
+PM2.5 is the variable having the most missing values. This confirms either non-monitoring or non-reporting of PM 2.5 data.
+
+# Treating missing values {.tabset .tabset-fade .tabset-pills}
+## Removing PM2.5 column & Stn code column
+```{r}
+air <- airpol[,-c(1,3,4,11)]
+names(air)
+plot_missing(air)
+```
+## Renaming variables into more meaningful
+```{r}
+air.var=rename(air,date=Sampling.Date,location=Location.of.Monitoring.Station,area=Type.of.Location,pm10=RSPM.PM10,agency=Agency,sulphur=SO2,nitro=NO2)
+names(air.var)
+```
+## Recoding location type
+```{r}
+air.var$area=recode_factor(air.var$area,'Residential, Rural and other Areas'="residential",'Industrial Area'="industrial",'Residential and others'="residential",'Industrial Areas'="industrial")
+str(air.var)
+```
+## Recoding dates
+```{r}
+air.var$date=recode_factor(air.var$date,'September_1995'="091995",'January_1995'="011995",'February_1995'="021995",'March_1995'="031995",'April_1995'="041995",'May_1995'="051995",'June_1995'="061995",'July_1995'="071995",'August_1995'="081995",'October_1995'="101995",'November_1995'="111995",'December_1995'="121995",'Annual_1995'="1995")
+str(air.var)
+```
+
+## More dates cleaning
+```{r}
+air.var$date=str_replace(air.var$date,"January - M|February - M|March - M|April - M|May - M|June - M|July - M|August - M|September - M|October - M|November - M|December - M|Annual - M","")
+str(air.var)
+```
+
+# Removing blank spaces
+```{r}
+trimws(air.var$date,which = "both")
+as.character(air.var$date)
+
+```
+## Lubridating
+```{r}
+(parse_date_time(air.var$date,orders = c("ymd", "dmy", "mdy","bdy", "bY")))
+class(air.var$date)
+```
+## Converting to factor for Random Forest
+```{r}
+air.f <- air.var %>%mutate_if(sapply(air.var, is.character), as.factor)
+str(air.f)
+```
+# Imputing Missing Values
+```{r}
+missForest(air.f[,-1])
+```
 
 
