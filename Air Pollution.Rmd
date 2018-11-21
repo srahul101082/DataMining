@@ -1,0 +1,84 @@
+---
+title: "Delhi AirPollution EDA"
+output:
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    fig_height: 4.5
+    fig_width: 7
+    highlight: tango
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+  pdf_document:
+    toc: yes
+---
+
+<center><img src="https://c.ndtvimg.com/2018-11/7hl7cai_delhi-pollution-delhi-air-quality-nov-2018-pti_625x300_01_November_18.jpg?output-quality=70&output-format=webp"></center>
+
+```{r setup, include=FALSE, echo=FALSE}
+knitr::opts_chunk$set(echo=TRUE, error=FALSE)
+```
+
+
+# Introduction
+The air quality in Delhi, the capital of India, according to a WHO survey of 1600 world cities, is the worst of any major city in the world.[1][2] Air pollution in India is estimated to kill 1.5 million people every year; it is the fifth largest killer in India. India has the world's highest death rate from chronic respiratory diseases and asthma, according to the WHO. In Delhi, poor quality air irreversibly damages the lungs of 2.2 million or 50 percent of all children.
+
+# The Database
+This is a public database made available by [Govt. Of India](https://data.gov.in/) under the Digital India initiative -
+open Government Data (OGD) Platform India.
+
+# Load Libraries
+We load a range of libraries for general data wrangling and general visualisation together with more specialised tools.
+```{r,message = FALSE}
+# data manipulation
+library('dplyr') # data manipulation
+library('readr') # input/output
+library('data.table') # data manipulation
+library('tibble') # data wrangling
+library('tidyr') # data wrangling
+library('stringr') # string manipulation
+library('forcats') # factor manipulation
+library('lazyeval') # data wrangling
+library('broom') # data wrangling
+library('purrr') # string manipulation
+
+# visualisation
+library('ggplot2') # visualisation
+library('scales') # visualisation
+library('grid') # visualisation
+library('gridExtra') # visualisation
+library('RColorBrewer') # visualisation
+library('corrplot') # visualisation
+
+# geospatial
+library('geosphere') # geospatial locations
+library('leaflet') # maps
+library('leaflet.extras') # maps
+library(maps) # maps
+```
+
+
+
+# Importing the dataset
+```{r}
+airpol <- read.csv(file="D:/Dsc/DataSets/air_pol.csv",header=TRUE, sep=",")
+```
+
+# Overview: File structure and content
+
+As a first step let's have an overview of the data sets using the *summary* and *glimpse* tools.
+```{r}
+summary(airpol)
+```
+```{r}
+glimpse(airpol)
+```
+
+We find that the data is very messy with numerous missing or undefined values. Certain dates have different structure. The data needs extensive cleaning before we commence the analysis of the same.
+
+
+
+
+
+
