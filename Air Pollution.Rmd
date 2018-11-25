@@ -33,7 +33,9 @@ We load a range of libraries for general data wrangling and general visualisatio
 ```{r,message = FALSE}
 # data manipulation
 library('dplyr') # data manipulation
+library('missRanger')# impute missing values
 library('readr') # input/output
+library('mice') # impute missing values
 library('data.table') # data manipulation
 library('DataExplorer') # data wrangling
 library('tibble') # data wrangling
@@ -46,6 +48,14 @@ library('lazyeval') # data wrangling
 library('broom') # data wrangling
 library('purrr') # string manipulation
 library('lubridate') # date wrangling
+
+# Clustering
+library(NbClust)
+library(factoextra)     # get_clust_tendency() assesses hopkins stat
+library(clustertend)
+library(cluster)	      # For silhoutte()
+library(vegan)
+library('clustMixType') # For mix variable clustering
 
 # visualisation
 library('ggplot2') # visualisation
@@ -146,7 +156,31 @@ str(air.f)
 ```
 # Imputing Missing Values
 ```{r}
-missForest(air.f[,-1])
+plot_missing(air.f)
+air.imp <- missRanger(air.f, pmm.k = 300, num.trees = 1000)
+plot_missing(air.imp)
 ```
 
+# Clustering {.tabset .tabset-fade .tabset-pills}
+## Clustering tendency
+
+Clustering analysis is the task of grouping a set of objects in such a way that objects in the same group (called a cluster) are more similar (in some sense or another) to each other than to those in other groups (clusters).
+
+Values show that dataset is not clusterable because H=0.05 is less than thresold value 0.5)
+```{r}
+air.clst <- get_clust_tendency(air.imp[,-c(1:4)], n = 100)
+print(air.clst$hopkins_stat)
+```
+## Visualize data set
+And visualization does not reveal any meaningful clusters.
+```{r}
+fviz_pca_ind(prcomp(air.imp[,-c(1:4)]), title = "Cluster tendency of data", geom = "point", ggtheme = theme_classic())
+```
+
+## Creating clusters
+The data is non-clusterable
+```{r}
+par(mar = c(2,2,2,2)) 
+air.nb <- kproto(air.imp,3)
+```
 
